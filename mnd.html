@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Letter | Digital Farewell</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. VARIABLES & RESET --- */
+        :root {
+            --bg-deep: #050510;
+            --bg-gradient-1: #0f0c29;
+            --bg-gradient-2: #302b63;
+            --bg-gradient-3: #24243e;
+            
+            --accent-glow: rgba(189, 100, 255, 0.4);
+            --accent-soft: rgba(255, 255, 255, 0.8);
+            --text-muted: #a0a0b0;
+            
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: 20px;
+            
+            --font-main: 'Outfit', sans-serif;
+            --font-serif: 'Cormorant Garamond', serif;
+            
+            --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--accent-soft);
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            line-height: 1.8;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* --- 2. BACKGROUND & PARTICLES --- */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(-45deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3), #000000);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- 3. CUSTOM CURSOR --- */
+        .cursor-dot, .cursor-ring {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
+            opacity: 0.8;
+        }
+
+        .cursor-ring {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+        }
+
+        body.hovering .cursor-ring {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: transparent;
+            backdrop-filter: blur(2px);
+        }
+
+        /* --- 4. TYPOGRAPHY & UTILS --- */
+        h1, h2, h3 {
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .serif-text {
+            font-family: var(--font-serif);
+            font-style: italic;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px; /* Narrower for letter feel */
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transition: transform 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out);
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s var(--ease-out), transform 1s var(--ease-out);
+        }
+
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- 5. SECTIONS --- */
+        
+        /* Hero */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 5rem);
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #a5a5a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            animation: fadeIn 1.5s var(--ease-out) forwards 0.5s;
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            opacity: 0;
+            animation: fadeIn 1.5s var(--ease-out) forwards 1s;
+        }
+
+        .btn-scroll {
+            display: inline-block;
+            padding: 14px 32px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: all 0.4s ease;
+            opacity: 0;
+            animation: fadeIn 1.5s var(--ease-out) forwards 1.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-scroll::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s var(--ease-out);
+            z-index: -1;
+        }
+
+        .btn-scroll:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .btn-scroll:hover {
+            border-color: white;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        /* Letter Section */
+        .letter-section {
+            padding: 8rem 0;
+        }
+
+        .letter-content {
+            font-size: 1.15rem;
+            color: #d0d0d0;
+            line-height: 2;
+        }
+
+        .letter-content p {
+            margin-bottom: 2rem;
+        }
+
+        .letter-content strong {
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Special Line (Typing) */
+        .typing-section {
+            padding: 6rem 0;
+            text-align: center;
+            min-height: 40vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .typing-text {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: var(--accent-glow);
+            border-right: 2px solid var(--accent-glow);
+            white-space: nowrap;
+            overflow: hidden;
+            display: inline-block;
+            padding-right: 5px;
+            text-shadow: 0 0 10px rgba(189, 100, 255, 0.3);
+        }
+
+        /* Closing */
+        .closing-section {
+            padding: 4rem 0 8rem;
+            text-align: center;
+        }
+
+        .divider {
+            width: 1px;
+            height: 80px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent);
+            margin: 0 auto 2rem;
+        }
+
+        .signature {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            color: white;
+            margin-top: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Music Control */
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .music-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .playing .music-icon svg {
+            animation: pulseMusic 2s infinite;
+        }
+
+        @keyframes pulseMusic {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .cursor-dot, .cursor-ring { display: none; }
+            * { cursor: auto; }
+            .glass-panel { padding: 2rem 1.5rem; }
+            .music-control { bottom: 20px; right: 20px; width: 45px; height: 45px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+
+    <!-- Background -->
+    <div class="ambient-bg"></div>
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Audio -->
+    <!-- Using a calm, melancholic piano track -->
+    <audio id="bg-music" loop>
+        <source src="https://image2url.com/r2/default/audio/1772305649393-962d7c07-3ccf-4ed1-960b-a4586b4ccf09.mp3" type="audio/mpeg">
+        
+    </audio>
+
+    <!-- Music Button -->
+    <div class="music-control hover-target" id="music-btn" title="Play Music">
+        <div class="music-icon">
+            <!-- Play Icon -->
+            <svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <!-- Pause Icon -->
+            <svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </div>
+    </div>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container">
+                <h1>For you..</h1>
+                <p class="serif-text">Sebuah pesan terakhir, sebelum kita kembali menjadi orang asing yang saling mengenali.</p>
+                <a href="#letter" class="btn-scroll hover-target">Baca Surat</a>
+            </div>
+        </section>
+
+        <!-- Letter -->
+        <section id="letter" class="letter-section">
+            <div class="container">
+                <div class="glass-panel scroll-reveal hover-target">
+                    <div class="letter-content">
+                        <p>Hai,</p>
+                        <p>Hallo, ga kerasa yaa kita udah lama bgt ga komunikasi.. sekarang aku cuma mau ngasih pesan terakhir buat kamu nih man.</p>
+                        <p>Kalo aku udah ngirim link website inii.. berarti aku udah bener" move on sama kamu dan udah siap juga buat asing.</p>
+                        <p>akuu sekarang udah fokus sama hubungan aku yang sekarang, walaupun aku maasih ngerasain trauma yang sama.</p>
+                        <p>Akuu mau minta maaf yaa, aku tau.. semasa aku masih sama kamu, aku banyak kurang nya, salaku ke kamu juga banyak banget haha,jadi aku mohon sama kamu buat maafin semua kesalahan aku yaa.</p>
+                        <p>Aku mau nitip pesan juga nih buat adik kecil ituu.. aku lupa namanya, aku cuma mau kamu jaga dia baik", ajak mainn dia.. ajarin hal hal yg baik.</p>
+                        <p>Aku juga titip salam yaa buat mama kamu, aku gabisa bikin kata" yg bagus.. mungkin segini aja deh, you also have to take care of your health.</p>
+                        <p>Selamat tinggal, dan terima kasih untuk segalanya.I hope you're happy in your current relationship.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typing Effect -->
+        <section class="typing-section">
+            <div class="container scroll-reveal">
+                <div class="typing-text" id="typewriter"></div>
+            </div>
+        </section>
+
+        <!-- Closing -->
+        <section class="closing-section">
+            <div class="container scroll-reveal">
+                <div class="divider"></div>
+                <p class="serif-text" style="color: var(--text-muted); margin-bottom: 1rem;">Sampai jumpa di versi terbaik kita nanti.</p>
+                <div class="signature">— Sayonara</div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>By Lilmiella &copy; 5 November 2024 - ???</p>
+    </footer>
+
+    <script>
+        /* --- 1. CUSTOM CURSOR --- */
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorRing = document.querySelector('.cursor-ring');
+        const hoverTargets = document.querySelectorAll('.hover-target, a, button, .music-control');
+
+        let mouseX = 0, mouseY = 0;
+        let dotX = 0, dotY = 0;
+        let ringX = 0, ringY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            // Dot moves instantly
+            dotX += (mouseX - dotX) * 0.5;
+            dotY += (mouseY - dotY) * 0.5;
+            
+            // Ring moves with delay (smooth)
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+
+            cursorDot.style.left = `${dotX}px`;
+            cursorDot.style.top = `${dotY}px`;
+            
+            cursorRing.style.left = `${ringX}px`;
+            cursorRing.style.top = `${ringY}px`;
+
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hover Effect
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            target.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+        /* --- 2. CANVAS PARTICLES --- */
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() * 0.4) - 0.2;
+                this.speedY = (Math.random() * 0.4) - 0.2;
+                this.color = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.1) this.size -= 0.005; // Twinkle
+                if (this.size <= 0.1) this.size = Math.random() * 2;
+                
+                // Wrap around
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 15000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        initParticles();
+        animateParticles();
+
+        /* --- 3. SCROLL REVEAL --- */
+        const observerOptions = { threshold: 0.15 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Trigger typing if it's the typing section
+                    if (entry.target.querySelector('#typewriter')) {
+                        typeWriterEffect();
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+        /* --- 4. TYPEWRITER EFFECT --- */
+        const textToType = "Ini bukan drama. Ini hanya cara aku pamit dengan baik.";
+        const typeWriterElement = document.getElementById('typewriter');
+        let i = 0;
+        let hasTyped = false;
+
+        function typeWriterEffect() {
+            if (hasTyped) return;
+            hasTyped = true;
+            
+            function type() {
+                if (i < textToType.length) {
+                    typeWriterElement.innerHTML += textToType.charAt(i);
+                    i++;
+                    setTimeout(type, 60); // Slower typing for emotional effect
+                }
+            }
+            type();
+        }
+
+        /* --- 5. AUDIO CONTROL --- */
+        const musicBtn = document.getElementById('music-btn');
+        const audio = document.getElementById('bg-music');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        let isPlaying = false;
+
+        audio.volume = 0.5;
+
+        musicBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering body click
+            toggleMusic();
+        });
+
+        function toggleMusic() {
+            if (isPlaying) {
+                audio.pause();
+                musicBtn.classList.remove('playing');
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+            } else {
+                audio.play().catch(e => console.log("Autoplay blocked"));
+                musicBtn.classList.add('playing');
+                iconPlay.style.display = 'none';
+                iconPause.style.display = 'block';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        // Try autoplay on first interaction anywhere
+        document.body.addEventListener('click', () => {
+            if (!isPlaying) {
+                toggleMusic();
+            }
+        }, { once: true });
+
+    </script>
+</body>
+</html>
